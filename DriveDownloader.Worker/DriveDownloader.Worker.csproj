@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-DriveDownloader.Worker-3466DF9B-35B9-4D30-91DA-71520B87CCAE</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+        <PackageReference Include="SimpleGoogleDrive" Version="0.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Update="\Users\ldellisola\.nuget\packages\simplegoogledrive\0.2.1\lib\net6.0\SimpleGoogleDrive.dll" />
+    </ItemGroup>
+</Project>

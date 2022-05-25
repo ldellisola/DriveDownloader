@@ -1,0 +1,8 @@
+**/.idea/**/*
+DriveDownloader.sln.DotSettings.user
+.git
+**/Dockerfile*
+**/bin/**/*
+**/obj/**/*
+**/.DS_Store
+**/.dockerignore
