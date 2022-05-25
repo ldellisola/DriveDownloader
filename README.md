@@ -10,10 +10,11 @@ This app will clone a folder from Google Drive to your own computer.
 ## How to use
 
 ```bash
-$ docker pull ghcr.io/ldellisola/drive_downloader-x64:latest
+$ docker pull ghcr.io/ldellisola/drive_downloader-amd64:latest
 $ docker run --volume=/local/path:/data -it -d --name=drive ldellisola/drive_downloader-x64:latest
 $ docker attach drive
 ```
+> To use the ARM image (on MacOS) change it to drive_downloader-arm
 
  The first time it will ask for the Google Drive API credentials and data. After that it will start looking for your files, this may take a while, and then you will be prompted with a CLI.
 
