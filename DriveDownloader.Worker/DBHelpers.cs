@@ -1,13 +1,12 @@
 
 using DriveDownloader.Worker.Models;
-using Google.Apis.Drive.v3;
 using Microsoft.EntityFrameworkCore;
 using SimpleGoogleDrive;
 using SimpleGoogleDrive.Models;
 
 namespace DriveDownloader.Worker;
 
-internal class DBHelpers
+internal static class DbHelpers
 {
     public static async Task<Status> Init()
     {
@@ -69,35 +68,62 @@ internal class DBHelpers
 
         await db.SaveChangesAsync();
     }
-    public static async Task Load(GoogleDriveService drive, string googleDriveBaseFolder)
+    public static async Task Load(GoogleDriveService drive, string googleDriveBaseFolder, CancellationToken token)
     {
-        Console.WriteLine($"Parsing files in {googleDriveBaseFolder}. This may take a while...");
-        var folder = await drive.FindFolder(googleDriveBaseFolder);
-        ArgumentNullException.ThrowIfNull(folder);
-        var query = new QueryBuilder().IsNotType(DriveResource.MimeType.Folder); //.And().HasNotPropertyValue("is downloaded","true");
-        var resources = (await folder.GetInnerResources(query, deepSearch: true)).ToArray();
-        var ids = resources.Select(t => t.Id);
+        Console.WriteLine($"Parsing files in {googleDriveBaseFolder}...");
+        var folder = await drive.FindFolder(googleDriveBaseFolder,token: token);
 
-// Cargo la base de datos
-        await using (var db = new DriveDBContext())
+        if (folder is null)
         {
-            var usedIds = await db.Files.Where(t => ids.Contains(t.Id)).Select(t=> t.Id).ToArrayAsync();
-            var unusedIds = ids.Where(t => !usedIds.Contains(t)).ToArray();
+            Console.WriteLine("The folder does not exists!");
+            ArgumentNullException.ThrowIfNull(folder);
+        }
+        
+        
+        var query = new QueryBuilder().IsNotType(DriveResource.MimeType.Folder); //.And().HasNotPropertyValue("is downloaded","true");
+        var resources = folder.GetInnerResources(query, deepSearch: true, token);
 
-            await db.Files.AddRangeAsync(
-                resources.Where(t => unusedIds.Contains(t.Id))
-                    .Where(t=> t.Size is not null || t.Type.GetDefaultExportType() is not default(DriveResource.MimeType))
-                    .Select(t=> new GoogleDriveFile
-                        {
-                            Id = t.Id,
-                            State = FileState.NotDownloaded,
-                            FullPath = t.GetFullName().Result,
-                            TotalBytes = t.Size ?? 0
-                        }
-                    )
-            );
+        await foreach (var resource in resources.WithCancellation(token))
+        {
+            await using var db = new DriveDBContext();
+            try
+            {
+                if (resource.Size is null && resource.Type.GetDefaultExportType() is default(DriveResource.MimeType))
+                    continue;
+                
+                if (await db.Files.AnyAsync(t => t.Id == resource.Id, token))
+                    continue;
 
-            await db.SaveChangesAsync();
+                var a = await resource.GetFullName(token);
+
+                // Console.WriteLine(a);
+
+                await db.Files.AddAsync(new GoogleDriveFile
+                    {
+                        Id = resource.Id,
+                        State = FileState.NotDownloaded,
+                        FullPath = a,
+                        TotalBytes = resource.Size ?? 0
+                    },
+                    token
+                );
+                await db.SaveChangesAsync(token);
+            }
+            catch (Exception e)
+            {
+                Errors error = new Errors
+                {
+                    DateTime = DateTime.Now,
+                    Details = $"Filename: {resource.Name} \nID: {resource.Id}",
+                    Stacktrace = e.StackTrace ?? "",
+                    Function = "Fetch",
+                    Message = e.Message,
+                };
+
+                await db.Errors.AddAsync(error, token);
+                await db.SaveChangesAsync(token);
+            }
+
         }
     }
 }

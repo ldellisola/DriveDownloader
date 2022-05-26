@@ -8,6 +8,7 @@ public class DriveDBContext: DbContext
 {
     public DbSet<GoogleDriveFile> Files { get; set; }
     public DbSet<Status> Status { get; set; }
+    public DbSet<Errors> Errors { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -42,6 +43,17 @@ public class DriveDBContext: DbContext
                 entity.Property(e => e.RemoteBaseFolder);
                 
             });
+
+        modelBuilder.Entity<Errors>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Message);
+            entity.Property(e => e.Stacktrace);
+            entity.Property(e => e.DateTime);
+            entity.Property(e => e.Details);
+            entity.Property(e => e.Function);
+        });
         
         base.OnModelCreating(modelBuilder);
     }

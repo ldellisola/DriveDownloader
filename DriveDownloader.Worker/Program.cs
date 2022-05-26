@@ -4,7 +4,7 @@ using DriveDownloader.Worker.CLI.Commands;
 using SimpleGoogleDrive.Models;
 
 
-var status = await DBHelpers.Init();
+var status = await DbHelpers.Init();
 
 var settings = new DriveAuthSettings(
     status.AppName!,
@@ -14,19 +14,24 @@ var settings = new DriveAuthSettings(
     mode: DriveAuthSettings.AuthMode.Console
 );
 
-using var drive = new SimpleGoogleDrive.GoogleDriveService(settings,true,"/data/storage.json");
-await drive.Authenticate();
+using var drive = await new SimpleGoogleDrive.GoogleDriveService(
+        settings, 
+        true, 
+        "/data/storage.json")
+    .Authenticate();
+
+ArgumentNullException.ThrowIfNull(drive);
 
 
-await DBHelpers.RestoreDownloadingFiles();
-await DBHelpers.Load(drive, status.RemoteBaseFolder!);
+await DbHelpers.RestoreDownloadingFiles();
+
+TaskStorage.RunAndStore(c=> DbHelpers.Load(drive, status.RemoteBaseFolder!,c));
 
 var cancellationTokenSource = new CancellationTokenSource();
 var cancellationToken = cancellationTokenSource.Token;
 cancellationToken.ThrowIfCancellationRequested();
 
-var tasks = new List<Task> {
-    ThreadActions.ManageDownloadThreads(drive, cancellationToken)};
+TaskStorage.RunAndStore(c => ThreadActions.ManageDownloadThreads(drive, c));
 
 InteractivePrompt.AddCommand<QuitCommand>();
 InteractivePrompt.AddCommand<StartCommand>();
@@ -40,11 +45,11 @@ InteractivePrompt.AddCommand<ClearCommand>();
 
 InteractivePrompt.Run("drive: ");
 
-cancellationTokenSource.Cancel();
 
 try
 {
-    Task.WaitAll(tasks.ToArray(), cancellationToken);
+    TaskStorage.CancelTasks();
+    TaskStorage.WaitAll();
 }
 catch
 {

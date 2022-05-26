@@ -41,7 +41,7 @@ internal class SetCommand : ICommand
             case {Value: "RemoteFolder"}:
                 if (_drive?.FindFolder(match.Groups["value"].Value) is null)
                     return $"The folder {match.Groups["value"].Value} does not exists";
-                DBHelpers.Load(_drive, match.Groups["value"].Value).Wait();
+                TaskStorage.RunAndStore(c=>DbHelpers.Load(_drive, match.Groups["value"].Value,c));
                 return string.Empty;
             default:
                 return $"Invalid Parameter: {match.Groups["parameter"].Value}";

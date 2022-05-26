@@ -8,10 +8,17 @@ public static class Extensions
         => type switch
         {
             DriveResource.MimeType.MsPowerPoint => ".pptx",
-            DriveResource.MimeType.MSExcel => ".xlsx",
-            DriveResource.MimeType.MSWord => ".docx",
+            DriveResource.MimeType.MsExcel => ".xlsx",
+            DriveResource.MimeType.MsWord => ".docx",
             DriveResource.MimeType.GoogleAppScript => ".json",
             DriveResource.MimeType.GoogleDrawing => ".png",
             _ => ".unknown"
         };
+
+    public static string SanitizeFileName(this string str)
+    {
+        var invalids = Path.GetInvalidFileNameChars();
+        return string.Join("_", str.Split(invalids, StringSplitOptions.RemoveEmptyEntries))
+            .TrimEnd('.');
+    }
 }
