@@ -80,7 +80,7 @@ internal static class DbHelpers
         }
         
         
-        var query = new QueryBuilder().IsNotType(DriveResource.MimeType.Folder); //.And().HasNotPropertyValue("is downloaded","true");
+        var query = new QueryBuilder().IsNotType(DriveResource.MimeType.Folder).And().IsNotType(DriveResource.MimeType.GoogleDriveShortcut); //.And().HasNotPropertyValue("is downloaded","true");
         var resources = folder.GetInnerResources(query, deepSearch: true, token);
 
         await foreach (var resource in resources.WithCancellation(token))

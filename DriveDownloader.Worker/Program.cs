@@ -26,11 +26,6 @@ ArgumentNullException.ThrowIfNull(drive);
 await DbHelpers.RestoreDownloadingFiles();
 
 TaskStorage.RunAndStore(c=> DbHelpers.Load(drive, status.RemoteBaseFolder!,c));
-
-var cancellationTokenSource = new CancellationTokenSource();
-var cancellationToken = cancellationTokenSource.Token;
-cancellationToken.ThrowIfCancellationRequested();
-
 TaskStorage.RunAndStore(c => ThreadActions.ManageDownloadThreads(drive, c));
 
 InteractivePrompt.AddCommand<QuitCommand>();

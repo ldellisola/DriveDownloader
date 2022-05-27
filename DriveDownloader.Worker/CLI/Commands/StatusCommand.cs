@@ -11,8 +11,11 @@ internal class StatusCommand : ICommand
 
     private string GetCurrentDownload(GoogleDriveFile file)
     {
-        int progress = (int) (file.BytesDownloaded * 30 / file.TotalBytes);
-        return new StringBuilder()
+        int progress =file.TotalBytes is 0 ? 0 : (int) (file.BytesDownloaded * 30 / file.TotalBytes);
+        return 
+            
+            
+            new StringBuilder()
             .Append('[')
             .Append(Enumerable.Range(0, progress).Aggregate("", (a, _) => a + '='))
             .Append(Enumerable.Range(0, 30 - progress).Aggregate("", (a, _) => a + ' '))
