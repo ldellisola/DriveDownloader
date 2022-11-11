@@ -17,7 +17,7 @@ var settings = new DriveAuthSettings(
 using var drive = await new SimpleGoogleDrive.GoogleDriveService(
         settings, 
         true, 
-        "/data/storage.json")
+        "/Users/ldellisola/Desktop/test/storage.json")
     .Authenticate();
 
 ArgumentNullException.ThrowIfNull(drive);

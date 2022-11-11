@@ -12,7 +12,7 @@ public class DriveDBContext: DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite(@"Filename=/data/googledrive.db", options =>
+        optionsBuilder.UseSqlite(@"Filename=/Users/ldellisola/Desktop/test/googledrive.db", options =>
         {
             options.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
         });
